@@ -1,0 +1,42 @@
+{
+    "valid_credentials": {
+        "username": "Admin",
+        "password": "admin123"
+    },
+    "invalid_credentials": {
+        "invalid_username": {
+            "username": "invalid",
+            "password": "admin123"
+        },
+        "invalid_password": {
+            "username": "Admin",
+            "password": "invalid"
+        },
+        "blank_fields": {
+            "username": "",
+            "password": ""
+        },
+        "case_sensitive": {
+            "username": "admin",
+            "password": "admin123"
+        },
+        "special_chars": {
+            "username": "Admin!@#",
+            "password": "admin123!@#"
+        },
+        "long_input": {
+            "username": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "password": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+    },
+    "special_characters": {
+        "username": "!@#$%^&*()",
+        "password": "!@#$%^&*()",
+        "expected_error": "Invalid credentials"
+    },
+    "case_sensitivity": {
+        "username": "admin",
+        "password": "ADMIN123",
+        "expected_error": "Invalid credentials"
+    }
+} 
