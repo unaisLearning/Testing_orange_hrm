@@ -66,6 +66,7 @@ class DriverManager:
         # Create a unique user-data-dir to avoid parallel execution conflicts
         user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
         chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+        # Use webdriver-manager to get the correct chromedriver path
         service = ChromeService(ChromeDriverManager().install())
         return webdriver.Chrome(service=service, options=chrome_options)
     
