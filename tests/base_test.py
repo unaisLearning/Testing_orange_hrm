@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import tempfile
 
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -47,6 +48,8 @@ class BaseTest:
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--disable-notifications')
             chrome_options.add_argument('--window-size=1920,1080')
+            # Use a unique user data dir for each test run
+            chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')
 
             # Initialize WebDriver
             service = Service(ChromeDriverManager().install())
