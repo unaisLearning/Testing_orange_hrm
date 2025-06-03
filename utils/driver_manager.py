@@ -9,6 +9,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from typing import Dict, Any, Optional
+import tempfile
+import uuid
 
 from config.config import Config
 from utils.logger import logger
@@ -54,16 +56,18 @@ class DriverManager:
     
     @staticmethod
     def _create_chrome_driver(options: Dict[str, Any]) -> webdriver.Chrome:
-        """Create Chrome WebDriver instance using local chromedriver."""
+        """Create Chrome WebDriver instance using webdriver-manager and a unique user-data-dir."""
         chrome_options = webdriver.ChromeOptions()
         if options.get("headless"):
             chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        # Use local chromedriver
+        chrome_options.add_argument("--disable-gpu")
+        # Create a unique user-data-dir to avoid parallel execution conflicts
+        user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
+        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
         service = ChromeService(ChromeDriverManager().install())
-        return webdriver.Chrome(options=chrome_options)
+        return webdriver.Chrome(service=service, options=chrome_options)
     
     @staticmethod
     def _create_firefox_driver(options: Dict[str, Any]) -> webdriver.Firefox:
