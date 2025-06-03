@@ -195,6 +195,5 @@ chrome_options.add_argument('--disable-dev-shm-usage')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--disable-notifications')
 chrome_options.add_argument('--window-size=1920,1080')
-
-# Add this line to use a unique user data dir for each run
-chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}') 
+chrome_options.add_argument('--remote-debugging-port=0')
+# Removed the --user-data-dir option for CI stability 
