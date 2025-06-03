@@ -1,21 +1,15 @@
-Collecting webdriver-manager==3.8.6
-  Downloading webdriver_manager-3.8.6-py2.py3-none-any.whl.metadata (11 kB)
-Requirement already satisfied: selenium in ./venv/lib/python3.12/site-packages (4.15.2)
-Collecting selenium
-  Downloading selenium-4.33.0-py3-none-any.whl.metadata (7.5 kB)
+Requirement already satisfied: webdriver-manager==3.8.6 in ./venv/lib/python3.12/site-packages (3.8.6)
+Requirement already satisfied: selenium in ./venv/lib/python3.12/site-packages (4.33.0)
 Requirement already satisfied: requests in ./venv/lib/python3.12/site-packages (from webdriver-manager==3.8.6) (2.32.3)
 Requirement already satisfied: python-dotenv in ./venv/lib/python3.12/site-packages (from webdriver-manager==3.8.6) (1.0.0)
-Collecting tqdm (from webdriver-manager==3.8.6)
-  Downloading tqdm-4.67.1-py3-none-any.whl.metadata (57 kB)
+Requirement already satisfied: tqdm in ./venv/lib/python3.12/site-packages (from webdriver-manager==3.8.6) (4.67.1)
 Requirement already satisfied: packaging in ./venv/lib/python3.12/site-packages (from webdriver-manager==3.8.6) (25.0)
 Requirement already satisfied: urllib3~=2.4.0 in ./venv/lib/python3.12/site-packages (from urllib3[socks]~=2.4.0->selenium) (2.4.0)
 Requirement already satisfied: trio~=0.30.0 in ./venv/lib/python3.12/site-packages (from selenium) (0.30.0)
 Requirement already satisfied: trio-websocket~=0.12.2 in ./venv/lib/python3.12/site-packages (from selenium) (0.12.2)
 Requirement already satisfied: certifi>=2025.4.26 in ./venv/lib/python3.12/site-packages (from selenium) (2025.4.26)
-Collecting typing_extensions~=4.13.2 (from selenium)
-  Downloading typing_extensions-4.13.2-py3-none-any.whl.metadata (3.0 kB)
-Collecting websocket-client~=1.8.0 (from selenium)
-  Downloading websocket_client-1.8.0-py3-none-any.whl.metadata (8.0 kB)
+Requirement already satisfied: typing_extensions~=4.13.2 in ./venv/lib/python3.12/site-packages (from selenium) (4.13.2)
+Requirement already satisfied: websocket-client~=1.8.0 in ./venv/lib/python3.12/site-packages (from selenium) (1.8.0)
 Requirement already satisfied: attrs>=23.2.0 in ./venv/lib/python3.12/site-packages (from trio~=0.30.0->selenium) (25.3.0)
 Requirement already satisfied: sortedcontainers in ./venv/lib/python3.12/site-packages (from trio~=0.30.0->selenium) (2.4.0)
 Requirement already satisfied: idna in ./venv/lib/python3.12/site-packages (from trio~=0.30.0->selenium) (3.10)
@@ -25,24 +19,3 @@ Requirement already satisfied: wsproto>=0.14 in ./venv/lib/python3.12/site-packa
 Requirement already satisfied: pysocks!=1.5.7,<2.0,>=1.5.6 in ./venv/lib/python3.12/site-packages (from urllib3[socks]~=2.4.0->selenium) (1.7.1)
 Requirement already satisfied: h11<1,>=0.9.0 in ./venv/lib/python3.12/site-packages (from wsproto>=0.14->trio-websocket~=0.12.2->selenium) (0.16.0)
 Requirement already satisfied: charset-normalizer<4,>=2 in ./venv/lib/python3.12/site-packages (from requests->webdriver-manager==3.8.6) (3.4.2)
-Downloading webdriver_manager-3.8.6-py2.py3-none-any.whl (27 kB)
-Downloading selenium-4.33.0-py3-none-any.whl (9.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━ 9.4/9.4 MB 3.9 MB/s eta 0:00:00
-Downloading typing_extensions-4.13.2-py3-none-any.whl (45 kB)
-Downloading websocket_client-1.8.0-py3-none-any.whl (58 kB)
-Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
-Installing collected packages: websocket-client, typing_extensions, tqdm, webdriver-manager, selenium
-  Attempting uninstall: typing_extensions
-    Found existing installation: typing_extensions 4.9.0
-    Uninstalling typing_extensions-4.9.0:
-      Successfully uninstalled typing_extensions-4.9.0
-  Attempting uninstall: webdriver-manager
-    Found existing installation: webdriver-manager 4.0.2
-    Uninstalling webdriver-manager-4.0.2:
-      Successfully uninstalled webdriver-manager-4.0.2
-  Attempting uninstall: selenium
-    Found existing installation: selenium 4.15.2
-    Uninstalling selenium-4.15.2:
-      Successfully uninstalled selenium-4.15.2
-
-Successfully installed selenium-4.33.0 tqdm-4.67.1 typing_extensions-4.13.2 webdriver-manager-3.8.6 websocket-client-1.8.0
