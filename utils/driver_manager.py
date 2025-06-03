@@ -62,8 +62,8 @@ class DriverManager:
         chrome_options.add_argument("--disable-dev-shm-usage")
         
         # Use local chromedriver
-        service = ChromeService("./chromedriver")
-        return webdriver.Chrome(service=service, options=chrome_options)
+        service = ChromeService(ChromeDriverManager().install())
+        return webdriver.Chrome(options=chrome_options)
     
     @staticmethod
     def _create_firefox_driver(options: Dict[str, Any]) -> webdriver.Firefox:

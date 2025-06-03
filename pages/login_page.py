@@ -6,6 +6,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.by import By
 
 from pages.base_page import BasePage
 from constants.selectors import LoginPageSelectors
@@ -34,7 +35,7 @@ class LoginPage(BasePage):
             
             # Wait for login form to be present
             WebDriverWait(self.driver, Config.IMPLICIT_WAIT).until(
-                EC.presence_of_element_located(LoginPageSelectors.USERNAME)
+                EC.presence_of_element_located((By.CSS_SELECTOR, LoginPageSelectors.USERNAME))
             )
             logger.info("Login page loaded successfully")
             
@@ -91,19 +92,26 @@ class LoginPage(BasePage):
             str: Error message text or empty string if no error
         """
         try:
+            # Wait for either error message type to be present
+            WebDriverWait(self.driver, Config.IMPLICIT_WAIT).until(
+                lambda driver: len(driver.find_elements(By.CSS_SELECTOR, LoginPageSelectors.ERROR_MESSAGE)) > 0 or
+                             len(driver.find_elements(By.CSS_SELECTOR, LoginPageSelectors.REQUIRED_ERROR)) > 0
+            )
+            
             # Check for general error message
-            error_element = self.find_element(LoginPageSelectors.ERROR_MESSAGE)
-            if error_element:
-                return error_element.text
+            error_elements = self.driver.find_elements(By.CSS_SELECTOR, LoginPageSelectors.ERROR_MESSAGE)
+            if error_elements:
+                return error_elements[0].text.strip()
             
             # Check for required field error
-            required_error = self.find_element(LoginPageSelectors.REQUIRED_ERROR)
-            if required_error:
-                return required_error.text
+            required_elements = self.driver.find_elements(By.CSS_SELECTOR, LoginPageSelectors.REQUIRED_ERROR)
+            if required_elements:
+                return required_elements[0].text.strip()
             
             return ""
             
-        except NoSuchElementException:
+        except TimeoutException:
+            logger.debug("No error message found within timeout period")
             return ""
         except Exception as e:
             logger.error(f"Failed to get error message: {str(e)}")
@@ -117,15 +125,16 @@ class LoginPage(BasePage):
             bool: True if login was successful, False otherwise
         """
         try:
-            # Check for error messages first
-            if self.get_error_message():
-                return False
+            # Wait for URL to change to dashboard
+            WebDriverWait(self.driver, Config.IMPLICIT_WAIT).until(
+                lambda driver: "/dashboard/index" in driver.current_url
+            )
             
             # Check for dashboard element
             dashboard = self.find_element(LoginPageSelectors.DASHBOARD)
             return bool(dashboard)
             
-        except NoSuchElementException:
+        except (TimeoutException, NoSuchElementException):
             return False
         except Exception as e:
             logger.error(f"Failed to check login status: {str(e)}")

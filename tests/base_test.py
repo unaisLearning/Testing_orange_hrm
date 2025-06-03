@@ -27,15 +27,6 @@ class BaseTest:
     Provides common setup and teardown methods.
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown(self):
-        """
-        Fixture that automatically runs setup and teardown for each test.
-        """
-        self.setup_method()
-        yield
-        self.teardown_method()
-
     def setup_method(self, method=None):
         """
         Setup for each test method.
