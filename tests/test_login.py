@@ -8,11 +8,13 @@ from pathlib import Path
 from datetime import datetime
 import os
 import glob
+import tempfile
 
 from tests.base_test import BaseTest
 from pages.login_page import LoginPage
 from utils.logger import logger
 from config.config import Config
+from selenium.webdriver.chrome.options import Options
 
 @allure.epic('OrangeHRM')
 @allure.feature('Authentication')
@@ -183,4 +185,16 @@ class TestLogin(BaseTest):
                 self.driver.get_screenshot_as_png(),
                 name="logout_successful",
                 attachment_type=allure.attachment_type.PNG
-            ) 
+            )
+
+# Update the driver setup code to include the --user-data-dir option
+chrome_options = Options()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-notifications')
+chrome_options.add_argument('--window-size=1920,1080')
+
+# Add this line to use a unique user data dir for each run
+chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}') 
