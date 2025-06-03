@@ -74,7 +74,8 @@ class DriverManager:
 
         # Use webdriver-manager's default path
         service = ChromeService(ChromeDriverManager().install())
-        return webdriver.Chrome(service=service, options=chrome_options)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        return driver
 
     @staticmethod
     def _create_firefox_driver(options: Dict[str, Any]) -> webdriver.Firefox:
