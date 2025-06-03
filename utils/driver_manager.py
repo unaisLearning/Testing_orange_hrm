@@ -57,25 +57,6 @@ class DriverManager:
             raise
 
     @staticmethod
-    def _get_chromedriver_path() -> str:
-        """Safely get the actual chromedriver executable path."""
-        base_path = ChromeDriverManager().install()
-
-        # If path is a directory, find the actual binary inside it
-        if os.path.isdir(base_path):
-            for root, _, files in os.walk(base_path):
-                for file in files:
-                    if file == "chromedriver":
-                        return os.path.join(root, file)
-            raise FileNotFoundError("chromedriver binary not found in unpacked directory")
-
-        # If path ends correctly, return it
-        if base_path.endswith("chromedriver"):
-            return base_path
-
-        raise RuntimeError(f"Invalid path returned by ChromeDriverManager: {base_path}")
-
-    @staticmethod
     def _create_chrome_driver(options: Dict[str, Any]) -> webdriver.Chrome:
         """Create Chrome WebDriver instance using webdriver-manager and a unique user-data-dir."""
         chrome_options = webdriver.ChromeOptions()
@@ -91,9 +72,8 @@ class DriverManager:
         user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
         chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
-        chromedriver_path = DriverManager._get_chromedriver_path()
-        service = ChromeService(executable_path=chromedriver_path)
-
+        # Use webdriver-manager's default path
+        service = ChromeService(ChromeDriverManager().install())
         return webdriver.Chrome(service=service, options=chrome_options)
 
     @staticmethod
