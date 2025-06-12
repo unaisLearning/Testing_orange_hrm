@@ -61,9 +61,6 @@ class DriverManager:
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
 
-        # Create a unique user-data-dir to avoid parallel execution conflicts
-        user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
-        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
         # Selenium 4+ provides Selenium Manager which resolves drivers automatically
         driver = webdriver.Chrome(options=chrome_options)

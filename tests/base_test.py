@@ -46,8 +46,6 @@ class BaseTest:
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--disable-notifications')
             chrome_options.add_argument('--window-size=1920,1080')
-            # Use a unique user data dir for each test run
-            chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')
 
             # Initialize WebDriver using Selenium Manager to handle driver binaries
             self.driver = webdriver.Chrome(options=chrome_options)
