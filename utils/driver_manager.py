@@ -7,13 +7,6 @@ import tempfile
 from typing import Dict, Any, Optional
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.edge.service import Service as EdgeService
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-
 from config.config import Config
 from utils.logger import logger
 
@@ -58,7 +51,7 @@ class DriverManager:
 
     @staticmethod
     def _create_chrome_driver(options: Dict[str, Any]) -> webdriver.Chrome:
-        """Create Chrome WebDriver instance using webdriver-manager and a unique user-data-dir."""
+        """Create Chrome WebDriver instance using Selenium Manager and a unique user-data-dir."""
         chrome_options = webdriver.ChromeOptions()
 
         if options.get("headless"):
@@ -68,13 +61,9 @@ class DriverManager:
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
 
-        # Create a unique user-data-dir to avoid parallel execution conflicts
-        user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
-        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
-        # Use webdriver-manager's default path
-        service = ChromeService(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Selenium 4+ provides Selenium Manager which resolves drivers automatically
+        driver = webdriver.Chrome(options=chrome_options)
         return driver
 
     @staticmethod
@@ -85,8 +74,8 @@ class DriverManager:
         if options.get("headless"):
             firefox_options.add_argument("--headless")
 
-        service = FirefoxService(GeckoDriverManager().install())
-        return webdriver.Firefox(service=service, options=firefox_options)
+        # Selenium Manager will resolve the geckodriver binary automatically
+        return webdriver.Firefox(options=firefox_options)
 
     @staticmethod
     def _create_edge_driver(options: Dict[str, Any]) -> webdriver.Edge:
@@ -96,5 +85,5 @@ class DriverManager:
         if options.get("headless"):
             edge_options.add_argument("--headless")
 
-        service = EdgeService(EdgeChromiumDriverManager().install())
-        return webdriver.Edge(service=service, options=edge_options)
+        # Selenium Manager will resolve the edgedriver binary automatically
+        return webdriver.Edge(options=edge_options)
