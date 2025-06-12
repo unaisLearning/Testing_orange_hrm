@@ -8,13 +8,11 @@ import pytest
 import allure
 from datetime import datetime
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import tempfile
 
-from webdriver_manager.chrome import ChromeDriverManager
 
 from config.config import Config
 from utils.logger import logger
@@ -51,9 +49,8 @@ class BaseTest:
             # Use a unique user data dir for each test run
             chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')
 
-            # Initialize WebDriver
-            service = Service(ChromeDriverManager().install())
-            self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            # Initialize WebDriver using Selenium Manager to handle driver binaries
+            self.driver = webdriver.Chrome(options=chrome_options)
 
             # Set timeouts
             self.driver.implicitly_wait(Config.IMPLICIT_WAIT)
