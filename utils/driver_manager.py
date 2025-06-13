@@ -6,6 +6,7 @@ import uuid
 import tempfile
 import platform
 import subprocess
+import shutil
 from typing import Dict, Any, Optional
 
 from selenium import webdriver
@@ -16,6 +17,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.core.os_manager import ChromeType
+from selenium.webdriver.chrome.options import Options
 
 from config.config import Config
 from utils.logger import logger
@@ -94,13 +96,28 @@ class DriverManager:
         """
         Create a unique user data directory for Chrome.
         Uses worker ID from pytest-xdist if available.
+        Ensures complete isolation between test instances.
         """
         # Get worker ID from pytest-xdist if available
         worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'gw0')
-        # Create a unique directory name using worker ID and UUID
-        unique_dir = f"chrome-user-data-{worker_id}-{uuid.uuid4()}"
+        # Create a unique directory name using worker ID, process ID, and UUID
+        process_id = os.getpid()
+        unique_dir = f"chrome-user-data-{worker_id}-{process_id}-{uuid.uuid4()}"
+        
         # Create the directory in the system temp directory
         user_data_dir = os.path.join(tempfile.gettempdir(), unique_dir)
+        
+        # Clean up any existing directory with the same prefix
+        for existing_dir in os.listdir(tempfile.gettempdir()):
+            if existing_dir.startswith(f"chrome-user-data-{worker_id}"):
+                try:
+                    full_path = os.path.join(tempfile.gettempdir(), existing_dir)
+                    if os.path.isdir(full_path):
+                        shutil.rmtree(full_path, ignore_errors=True)
+                except Exception as e:
+                    logger.warning(f"Failed to clean up directory {existing_dir}: {str(e)}")
+        
+        # Create fresh directory
         os.makedirs(user_data_dir, exist_ok=True)
         logger.info(f"Created unique user data directory: {user_data_dir}")
         return user_data_dir
@@ -143,33 +160,65 @@ class DriverManager:
 
     @staticmethod
     def _create_chrome_driver(options: Dict[str, Any]) -> webdriver.Chrome:
-        """Create Chrome WebDriver instance using webdriver-manager and a unique user-data-dir."""
-        chrome_options = webdriver.ChromeOptions()
+        """
+        Create and configure a Chrome WebDriver instance.
 
-        # Use appropriate headless mode based on environment
-        if options.get("headless"):
+        Args:
+            options: Optional Chrome options to use
+
+        Returns:
+            webdriver.Chrome: Configured Chrome WebDriver instance
+        """
+        try:
+            chrome_options = webdriver.ChromeOptions()
+            
+            # Add common Chrome options
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-notifications")
+            
+            # Create a unique user data directory for this instance
+            user_data_dir = DriverManager._get_unique_user_data_dir()
+            chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+            
+            # Add headless mode in GitHub Actions
             if os.environ.get('GITHUB_ACTIONS') == 'true':
-                chrome_options.add_argument("--headless")  # Use old headless mode for GitHub Actions
-            else:
-                chrome_options.add_argument("--headless=new")  # Use new headless mode for local
-
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--disable-notifications")
-
-        # Create a unique user data directory for this instance
-        user_data_dir = DriverManager._get_unique_user_data_dir()
-        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-
-        # Get appropriate ChromeDriver path
-        driver_path = DriverManager._get_chrome_driver_path()
-        logger.info(f"Using ChromeDriver at: {driver_path}")
-        
-        # Initialize WebDriver
-        service = ChromeService(driver_path)
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        return driver
+                chrome_options.add_argument('--headless')
+            
+            # Get appropriate ChromeDriver path
+            driver_path = DriverManager._get_chrome_driver_path()
+            service = ChromeService(driver_path)
+            
+            # Create the driver with explicit cleanup
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Register cleanup
+            def cleanup():
+                try:
+                    driver.quit()
+                except Exception as e:
+                    logger.warning(f"Error during driver cleanup: {str(e)}")
+                finally:
+                    try:
+                        shutil.rmtree(user_data_dir, ignore_errors=True)
+                    except Exception as e:
+                        logger.warning(f"Error cleaning up user data directory: {str(e)}")
+            
+            import atexit
+            atexit.register(cleanup)
+            
+            return driver
+            
+        except Exception as e:
+            logger.error(f"Failed to create Chrome driver: {str(e)}")
+            # Clean up user data directory on failure
+            try:
+                if 'user_data_dir' in locals():
+                    shutil.rmtree(user_data_dir, ignore_errors=True)
+            except Exception as cleanup_error:
+                logger.warning(f"Error cleaning up user data directory after failure: {str(cleanup_error)}")
+            raise
 
     @staticmethod
     def _create_firefox_driver(options: Dict[str, Any]) -> webdriver.Firefox:
