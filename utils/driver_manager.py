@@ -32,7 +32,24 @@ class DriverManager:
         # Always use webdriver-manager in GitHub Actions
         if os.environ.get('GITHUB_ACTIONS') == 'true':
             logger.info("Running in GitHub Actions environment")
-            return ChromeDriverManager().install()
+            try:
+                # Install ChromeDriver using webdriver-manager
+                driver_path = ChromeDriverManager().install()
+                # Verify it's the correct executable
+                if not os.path.basename(driver_path) == 'chromedriver':
+                    # Find the actual chromedriver executable in the directory
+                    driver_dir = os.path.dirname(driver_path)
+                    for file in os.listdir(driver_dir):
+                        if file == 'chromedriver':
+                            driver_path = os.path.join(driver_dir, file)
+                            break
+                # Make sure it's executable
+                os.chmod(driver_path, 0o755)
+                logger.info(f"Using ChromeDriver at: {driver_path}")
+                return driver_path
+            except Exception as e:
+                logger.error(f"Failed to setup ChromeDriver in GitHub Actions: {str(e)}")
+                raise
         
         # For local Mac ARM64 environment
         if platform.system() == 'Darwin' and platform.machine() == 'arm64':
@@ -55,10 +72,8 @@ class DriverManager:
                         logger.info(f"Using local ChromeDriver: {local_driver}")
                         logger.info(f"ChromeDriver version: {result.stdout.strip()}")
                         return local_driver
-                    else:
-                        logger.error(f"ChromeDriver test failed with output: {result.stderr}")
                 except Exception as e:
-                    logger.error(f"Local ChromeDriver test failed: {str(e)}")
+                    logger.warning(f"Local ChromeDriver test failed: {str(e)}")
             
             # If local driver not available or not working, try webdriver-manager with CHROMIUM
             try:
