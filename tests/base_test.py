@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import subprocess
 
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
@@ -71,58 +72,44 @@ class BaseTest:
         if os.environ.get('GITHUB_ACTIONS') == 'true':
             logger.info("Running in GitHub Actions environment")
             try:
-                # Install ChromeDriver using webdriver-manager
                 driver_path = ChromeDriverManager().install()
-                # Verify it's the correct executable
                 if not os.path.basename(driver_path) == 'chromedriver':
-                    # Find the actual chromedriver executable in the directory
                     driver_dir = os.path.dirname(driver_path)
                     for file in os.listdir(driver_dir):
                         if file == 'chromedriver':
                             driver_path = os.path.join(driver_dir, file)
                             break
-                # Make sure it's executable
                 os.chmod(driver_path, 0o755)
                 logger.info(f"Using ChromeDriver at: {driver_path}")
                 return driver_path
             except Exception as e:
                 logger.error(f"Failed to setup ChromeDriver in GitHub Actions: {str(e)}")
                 raise
-        
         # For local Mac ARM64 environment
         if platform.system() == 'Darwin' and platform.machine() == 'arm64':
             logger.info("Running on Mac ARM64")
-            
-            # First try using the local chromedriver
             local_driver = os.path.abspath('./chromedriver')
             if os.path.exists(local_driver):
                 try:
-                    # Verify the chromedriver is executable
                     if not os.access(local_driver, os.X_OK):
                         logger.info("Making chromedriver executable")
                         os.chmod(local_driver, 0o755)
-                    
-                    # Test if chromedriver works
-                    result = subprocess.run([local_driver, '--version'], 
-                                         capture_output=True, 
-                                         text=True)
+                    result = subprocess.run([local_driver, '--version'], capture_output=True, text=True)
                     if result.returncode == 0:
                         logger.info(f"Using local ChromeDriver: {local_driver}")
                         logger.info(f"ChromeDriver version: {result.stdout.strip()}")
                         return local_driver
                 except Exception as e:
                     logger.warning(f"Local ChromeDriver test failed: {str(e)}")
-            
-            # If local driver not available or not working, try webdriver-manager with CHROMIUM
+            # Fallback: Use webdriver-manager for Chrome (not Chromium)
             try:
-                logger.info("Attempting to use webdriver-manager with CHROMIUM")
-                driver_path = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+                logger.info("Attempting to use webdriver-manager for Chrome")
+                driver_path = ChromeDriverManager().install()
                 logger.info(f"Using webdriver-manager ChromeDriver: {driver_path}")
                 return driver_path
             except Exception as e:
                 logger.error(f"Failed to setup ChromeDriver: {str(e)}")
                 raise
-        
         # Default case for other environments
         logger.info("Using default ChromeDriver setup")
         return ChromeDriverManager().install()
