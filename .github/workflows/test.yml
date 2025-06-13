@@ -24,11 +24,12 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Install Allure
+      - name: Install Allure CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install -y allure
-          # Verify installation
+          wget https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
+          tar -zxvf allure-2.27.0.tgz
+          sudo mv allure-2.27.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
           allure --version
 
       - name: Install Chrome and ChromeDriver
