@@ -29,16 +29,16 @@ class DriverManager:
         Get the appropriate ChromeDriver path based on the environment.
         Returns the path to ChromeDriver executable.
         """
-        # Check if running in GitHub Actions
+        # Always use webdriver-manager in GitHub Actions
         if os.environ.get('GITHUB_ACTIONS') == 'true':
             logger.info("Running in GitHub Actions environment")
             return ChromeDriverManager().install()
         
-        # Check if running on Mac ARM64
+        # For local Mac ARM64 environment
         if platform.system() == 'Darwin' and platform.machine() == 'arm64':
             logger.info("Running on Mac ARM64")
             
-            # Use the local chromedriver
+            # First try using the local chromedriver
             local_driver = os.path.abspath('./chromedriver')
             if os.path.exists(local_driver):
                 try:
@@ -60,7 +60,15 @@ class DriverManager:
                 except Exception as e:
                     logger.error(f"Local ChromeDriver test failed: {str(e)}")
             
-            raise RuntimeError("Local ChromeDriver not found or not working. Please ensure chromedriver is in the project root directory.")
+            # If local driver not available or not working, try webdriver-manager with CHROMIUM
+            try:
+                logger.info("Attempting to use webdriver-manager with CHROMIUM")
+                driver_path = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+                logger.info(f"Using webdriver-manager ChromeDriver: {driver_path}")
+                return driver_path
+            except Exception as e:
+                logger.error(f"Failed to setup ChromeDriver: {str(e)}")
+                raise
         
         # Default case for other environments
         logger.info("Using default ChromeDriver setup")
@@ -107,8 +115,12 @@ class DriverManager:
         """Create Chrome WebDriver instance using webdriver-manager and a unique user-data-dir."""
         chrome_options = webdriver.ChromeOptions()
 
+        # Use appropriate headless mode based on environment
         if options.get("headless"):
-            chrome_options.add_argument("--headless=new")  # Updated headless mode
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
+                chrome_options.add_argument("--headless")  # Use old headless mode for GitHub Actions
+            else:
+                chrome_options.add_argument("--headless=new")  # Use new headless mode for local
 
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")

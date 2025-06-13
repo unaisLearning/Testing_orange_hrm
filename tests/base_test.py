@@ -36,12 +36,12 @@ class BaseTest:
         Get the appropriate ChromeDriver path based on the environment.
         Returns the path to ChromeDriver executable.
         """
-        # Check if running in GitHub Actions
+        # Always use webdriver-manager in GitHub Actions
         if os.environ.get('GITHUB_ACTIONS') == 'true':
             logger.info("Running in GitHub Actions environment")
             return ChromeDriverManager().install()
         
-        # Check if running on Mac ARM64
+        # For local Mac ARM64 environment
         if platform.system() == 'Darwin' and platform.machine() == 'arm64':
             logger.info("Running on Mac ARM64")
             
@@ -65,7 +65,7 @@ class BaseTest:
                 except Exception as e:
                     logger.warning(f"Local ChromeDriver test failed: {str(e)}")
             
-            # If local driver not available or not working, try webdriver-manager
+            # If local driver not available or not working, try webdriver-manager with CHROMIUM
             try:
                 logger.info("Attempting to use webdriver-manager with CHROMIUM")
                 driver_path = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
@@ -93,7 +93,12 @@ class BaseTest:
         try:
             # Configure Chrome options
             chrome_options = Options()
-            chrome_options.add_argument('--headless=new')  # Updated headless mode
+            # Use appropriate headless mode based on environment
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
+                chrome_options.add_argument('--headless')  # Use old headless mode for GitHub Actions
+            else:
+                chrome_options.add_argument('--headless=new')  # Use new headless mode for local
+            
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
