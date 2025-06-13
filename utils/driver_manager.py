@@ -90,6 +90,22 @@ class DriverManager:
         return ChromeDriverManager().install()
 
     @staticmethod
+    def _get_unique_user_data_dir() -> str:
+        """
+        Create a unique user data directory for Chrome.
+        Uses worker ID from pytest-xdist if available.
+        """
+        # Get worker ID from pytest-xdist if available
+        worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'gw0')
+        # Create a unique directory name using worker ID and UUID
+        unique_dir = f"chrome-user-data-{worker_id}-{uuid.uuid4()}"
+        # Create the directory in the system temp directory
+        user_data_dir = os.path.join(tempfile.gettempdir(), unique_dir)
+        os.makedirs(user_data_dir, exist_ok=True)
+        logger.info(f"Created unique user data directory: {user_data_dir}")
+        return user_data_dir
+
+    @staticmethod
     def create_driver(browser_name: Optional[str] = None) -> webdriver.Remote:
         """
         Create and configure a WebDriver instance.
@@ -142,8 +158,8 @@ class DriverManager:
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-notifications")
 
-        # Create a unique user-data-dir to avoid parallel execution conflicts
-        user_data_dir = tempfile.mkdtemp(prefix=f"user-data-dir-{uuid.uuid4()}")
+        # Create a unique user data directory for this instance
+        user_data_dir = DriverManager._get_unique_user_data_dir()
         chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
         # Get appropriate ChromeDriver path
